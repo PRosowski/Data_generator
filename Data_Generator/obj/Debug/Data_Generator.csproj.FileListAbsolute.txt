@@ -1,0 +1,8 @@
+c:\users\przemek\documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\Data_Generator.exe.config
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\Data_Generator.exe
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\Data_Generator.pdb
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\obj\Debug\Data_Generator.csprojResolveAssemblyReference.cache
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\obj\Debug\Data_Generator.exe
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\obj\Debug\Data_Generator.pdb
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\MathNet.Numerics.dll
+c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\MathNet.Numerics.xml
