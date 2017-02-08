@@ -6,3 +6,5 @@ c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Gener
 c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\obj\Debug\Data_Generator.pdb
 c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\MathNet.Numerics.dll
 c:\Users\Przemek\Documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\MathNet.Numerics.xml
+C:\Users\Przemek\documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\ServiceStack.Text.dll
+C:\Users\Przemek\documents\visual studio 2015\Projects\Data_Generator\Data_Generator\bin\Debug\ServiceStack.Text.xml
