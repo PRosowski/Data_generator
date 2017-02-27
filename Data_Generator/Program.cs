@@ -13,6 +13,11 @@ namespace Data_Generator
         public int id_of_package { get; set; }
 
         public List<PackageType> list_of_incoming_packages;
+        public PackageType()
+        {
+            list_of_incoming_packages = new List<PackageType>();
+        }
+        
 
     }
 
@@ -38,6 +43,11 @@ namespace Data_Generator
 
         public List<ObjectType> list_of_incoming_objects;
 
+        public ObjectType()
+        {
+            list_of_incoming_objects = new List<ObjectType>();
+        }
+
     }
 
     public class ObjectTransformations
@@ -61,6 +71,11 @@ namespace Data_Generator
         public int id_of_field { get; set; }
 
         public List<FieldType> list_of_incoming_fields;
+
+        public FieldType()
+        {
+            list_of_incoming_fields = new List<FieldType>();
+        }
 
     }
 
@@ -117,13 +132,13 @@ namespace Data_Generator
             csv2.AppendLine(new_line_header2);
             csv.AppendLine(new_line_header1);
 
-            for (int i = 1; i <= number_of_packages; i++)
+            for (int i = 0; i < number_of_packages; i++)
             {
                 //table_of_packagess[i] = i + 1;
                 PackageType new_package = new PackageType();
                 new_package.id_of_package = i;
                 list_of_packages.Add(new_package);
-                for (int j = 1; j <= av_num_of_obj_per_package.Sample(); j++)
+                for (int j = 0; j < av_num_of_obj_per_package.Sample(); j++)
                 {
 
                     ObjectType new_object = new ObjectType();
@@ -135,7 +150,7 @@ namespace Data_Generator
                         list_of_objects.Add(new_object);
                         var newLineA = string.Format("{0},{1},{2}", i, j, 'A');
                         csv.AppendLine(newLineA);
-                        for (int k = 1; k <= av_num_of_fields_of_obj_catA.Sample(); k++)
+                        for (int k = 0; k < av_num_of_fields_of_obj_catA.Sample(); k++)
                         {
                             FieldType new_field = new FieldType();
                             new_field.id_of_package = i;
@@ -152,7 +167,7 @@ namespace Data_Generator
                         list_of_objects.Add(new_object);
                         var newLineB = string.Format("{0},{1},{2}", i, j, 'B');
                         csv.AppendLine(newLineB);
-                        for (int k = 1; k <= av_num_of_fields_of_obj_catA.Sample(); k++)
+                        for (int k = 0; k < av_num_of_fields_of_obj_catA.Sample(); k++)
                         {
                             FieldType new_field = new FieldType();
                             new_field.id_of_package = i;
@@ -183,7 +198,7 @@ namespace Data_Generator
                 sum_av_num_of_incoming_fields += av_num_of_incoming_fields.Sample();
                  */
             }
-
+            Console.WriteLine(list_of_packages.Count);
             // Generowanie krawędzi typu data_transformations
             //Pętla po wygenerowanych wczesniej pakietach
             int id_of_transformations = 1;
@@ -203,8 +218,11 @@ namespace Data_Generator
                     do
                     {
                         int random_index_of_package = randomNumber.Next(list_of_packages.Count);
+                        Console.WriteLine(random_index_of_package);
                         random_package = list_of_packages[random_index_of_package];
+                        Console.WriteLine("Id random_package: {0} ", random_package.id_of_package);
                     } while (package_element.id_of_package != random_package.id_of_package && !(package_element.list_of_incoming_packages.Contains(random_package)));
+                    Console.WriteLine("Numbrers of element in list {0}", package_element.list_of_incoming_packages.Count);
                     package_element.list_of_incoming_packages.Add(random_package);
                     PackageTransformations new_transformation = new PackageTransformations();
                     new_transformation.source_package = random_package;
@@ -214,16 +232,20 @@ namespace Data_Generator
                     list_of_package_transformations.Add(new_transformation);
                     
                 }
-
+                Console.WriteLine("Koniec generowania data_transformations dla pakietow");
+                Console.WriteLine(package_element.list_of_incoming_packages.Count);
                 foreach(PackageType incoming_package in package_element.list_of_incoming_packages)
                 {
+                    Console.WriteLine("ID of incomig_package {0}, Id of package_element {1}", incoming_package.id_of_package, package_element.id_of_package);
+                    Console.WriteLine("Poczatek generowania data transformation dla obiektow");
                     List<ObjectType> list_of_objects_from_incoming_package = list_of_objects.FindAll(x => x.id_of_package == incoming_package.id_of_package);
                     List<ObjectType> list_of_objects_from_package_element = list_of_objects.FindAll(y => y.id_of_package == package_element.id_of_package);
                     PackageTransformations temp_package = list_of_package_transformations.Find(x => x.source_package == incoming_package && x.destiny_package == package_element);
+                    Console.WriteLine(temp_package.ID);
                     foreach (ObjectType object_element in list_of_objects_from_package_element)
                     {
 
-                        for (int j = 1; j <= av_num_of_incoming_fields.Sample(); j++)
+                        for (int j = 0; j < av_num_of_incoming_fields.Sample(); j++)
                         {
                             ObjectType random_object;
                             do
@@ -231,17 +253,17 @@ namespace Data_Generator
 
                                 int random_index_of_object = randomNumber.Next(list_of_objects_from_incoming_package.Count);
                                 random_object = list_of_objects_from_incoming_package[random_index_of_object];
+                                Console.WriteLine("Losowy obiekt id {0}.{1}", random_object.id_of_package,random_object.id_of_object);
 
-                            } while (!(object_element.list_of_incoming_objects.Contains(random_object)));
+                            } while (object_element.list_of_incoming_objects.Contains(random_object));
                             object_element.list_of_incoming_objects.Add(random_object);
                             ObjectTransformations new_transformation = new ObjectTransformations();
                             new_transformation.source_object = random_object;
                             new_transformation.destiny_object = object_element;
                             new_transformation.ID = temp_package.ID;
                             list_of_object_transformations.Add(new_transformation);
+                            Console.WriteLine("Po generowaniu obiektu jednego");
                         }
-
-
 
                     }
                     List<FieldType> list_of_fields_from_incoming_package = list_of_fields.FindAll(x => x.id_of_package == incoming_package.id_of_package);
@@ -249,20 +271,22 @@ namespace Data_Generator
                     foreach(FieldType field_element in list_of_fields_from_package_element)
                     {
 
-                        for(int j=1; j<= av_num_of_incoming_fields.Sample(); j++)
+                        for(int j=0; j< av_num_of_incoming_fields.Sample(); j++)
                         {
                             FieldType random_field;
                             do
                             {
                                 int random_index_of_field = randomNumber.Next(list_of_fields_from_incoming_package.Count);
                                 random_field = list_of_fields_from_incoming_package[random_index_of_field];
-                            } while (!(field_element.list_of_incoming_fields.Contains(random_field)));
+                                Console.WriteLine("Losowy obiekt id {0}.{1}.{2}", random_field.id_of_package, random_field.id_of_object, random_field.id_of_field);
+                            } while (field_element.list_of_incoming_fields.Contains(random_field));
                             field_element.list_of_incoming_fields.Add(random_field);
                             FieldTransformations new_transformation = new FieldTransformations();
                             new_transformation.source_field = random_field;
                             new_transformation.destiny_field = field_element;
                             new_transformation.ID = temp_package.ID;
                             list_of_field_transformations.Add(new_transformation);
+                            Console.WriteLine("po generowaniu pola jednego");
 
 
                         }
@@ -273,6 +297,7 @@ namespace Data_Generator
 
             }
 
+            //Generowanie cykli
 
 
 
@@ -294,23 +319,8 @@ namespace Data_Generator
 
 
 
-            foreach (ObjectType object_element in list_of_objects)
-            {
-                for (int i = 0; i < av_num_of_incoming_fields.Sample(); i++)
-                {
-                    ObjectType random_object;
-                    do
-                    {
-                        int random_index_of_object = randomNumber.Next(list_of_objects.Count);
-                        random_object = list_of_objects[random_index_of_object];
-                    } while (object_element.id_of_object != random_object.id_of_object && object_element.id_of_package != random_object.id_of_package && object_element.list_of_incoming_objects.Contains(random_object));
-                    object_element.list_of_incoming_objects.Add(random_object);
 
-
-                }
-
-            }
-
+    
 
 
             File.WriteAllText(filePath_pcg_to_obj, csv.ToString());
