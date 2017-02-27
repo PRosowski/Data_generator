@@ -304,9 +304,15 @@ namespace Data_Generator
             //Generowanie cykli jednoelementowych
             for(int i=0; i<number_of_single_edge_cycles; i++)
             {
-                //Wybieram losowy pakiet
-                int random_number = randomNumber.Next(list_of_package_transformations.Count);
-                PackageTransformations temp_transformation = list_of_package_transformations[random_number];
+                //Wybieram losowy pakiet, który nie ma jeszcze cyklu pojedynczego
+                PackageTransformations temp_transformation;
+                int random_number;
+                do
+                {
+                    random_number = randomNumber.Next(list_of_package_transformations.Count);
+                    temp_transformation = list_of_package_transformations[random_number];
+                } while (temp_transformation.destiny_package.id_of_package == temp_transformation.source_package.id_of_package);
+                
                 //Tworze cykl, czyli wezel docelowy to wezel zrodlowy
                 list_of_package_transformations[random_number].destiny_package = temp_transformation.source_package;
                 //Pobieram informacje o ID transformacji, w celu pozniejszego pobrania transformacji na poziomie obiektu i pol o takim samym ID
@@ -317,54 +323,106 @@ namespace Data_Generator
                 //Transformacje na poziomie obiektu
                 foreach(ObjectTransformations obj_transformation in temp_object_transformations)
                 {
-                    if (i == number_of_single_edge_cycles)
-                        break;
-                    // JAK LOSOWAC OBIEKTY?????????????????????????????????????
-                    int random_number_obj_transf = randomNumber.Next(100);
-                    if (random_number_obj_transf<50)
-                    {
-                        Console.WriteLine("Usuniecie obiektu");
-                        //Nie ma cyklu, usuwam z listy transformacji.
-                        list_of_object_transformations.Remove(obj_transformation);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Cykl - obiekt");
-                        //Jest cykl, modyfikuje wpis w liscie transformacji
-                        obj_transformation.destiny_object = obj_transformation.source_object;
-                        i++;
-                    }
+                    if (i >= number_of_single_edge_cycles)
+                        break;                    
+                    Console.WriteLine("Cykl - obiekt");
+                    //Jest cykl, modyfikuje wpis w liscie transformacji
+                    obj_transformation.destiny_object = obj_transformation.source_object;
+                    i++;
+                    
                 }
                 //Transformacje na poziomie pola
                 foreach(FieldTransformations fld_transformation in temp_field_transformations)
                 {
-                    if (i == number_of_single_edge_cycles)
+                    if (i >= number_of_single_edge_cycles)
                         break;
-                    //JAK LOSOWAC POLA?????????????????????????????????????????
-                    int random_number_fld_transf = randomNumber.Next(100);
-                    if(random_number_fld_transf<50)
-                    {
-                        Console.WriteLine("Usuniecie pola");
-                        //Nie ma cyklu na poziomie pola, usuwam z listy transformacji
-                        list_of_field_transformations.Remove(fld_transformation);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Cykl - pole");
-                        //Jest cykl na poziomie pola, modyfikuje wpis w liscie transformacji
-                        fld_transformation.destiny_field = fld_transformation.source_field;
-                        i++;
-                    }
+                    
+                    Console.WriteLine("Cykl - pole");
+                    //Jest cykl na poziomie pola, modyfikuje wpis w liscie transformacji
+                    fld_transformation.destiny_field = fld_transformation.source_field;
+                    i++;
+                    
                  
                 }
             }
 
 
             //Generowanie cykli dwuelementowych
-
-            // TODO
+            //Ograniczam liste krawedzi( par wezlow zrodlo - cel ) do tych, ktore sa rozne( odrzucam cykle jednoelementowe )
+           
             for(int i=0; i<number_of_two_edge_cycles; i++)
             {
+                int random_number;
+                PackageTransformations temp_transformations;
+                int number_of_reverse_transformations;
+                int number_of_source_packages_from_destiny_package;
+                // Wybieramy transformacje, ktora nie posiada jeszcze cyklu;
+                do
+                {
+                    random_number = randomNumber.Next(list_of_package_transformations.Count);
+                    temp_transformations = list_of_package_transformations[random_number];
+                    //Sprawdzam, czy aby nie wybrałem transformacji będącej w cyklu           
+                    number_of_reverse_transformations = list_of_package_transformations.FindAll(x => x.destiny_package.id_of_package == temp_transformations.source_package.id_of_package && x.source_package.id_of_package == temp_transformations.destiny_package.id_of_package).Count;
+                    //Sprawdzam, czy mam z czegu usunac krawedz
+                    number_of_source_packages_from_destiny_package = list_of_package_transformations.FindAll(x => x.destiny_package == temp_transformations.destiny_package ).Count;
+                } while (number_of_reverse_transformations > 0 || number_of_source_packages_from_destiny_package < 2 || temp_transformations.source_package.id_of_package == temp_transformations.destiny_package.id_of_package);
+                //Jest wybrana transformacja. Bez cykli jednoelementowych oraz nie posiadajaca cyklu dwuelementowego
+
+                PackageType source_package = temp_transformations.source_package;
+                PackageType destiny_package = temp_transformations.destiny_package;
+                // Wybieram transformację z której usunę krawędź
+                List<PackageTransformations> list_of_package_transformations_from_destiny_package = list_of_package_transformations.FindAll(x => x.destiny_package == destiny_package && x.source_package != source_package);
+                int random_nmb = randomNumber.Next(list_of_package_transformations_from_destiny_package.Count);
+                PackageTransformations random_transformationn = list_of_package_transformations_from_destiny_package[random_nmb];
+                destiny_package.list_of_incoming_packages.Remove(random_transformationn.source_package);
+                int ID_of_transformation = random_transformationn.ID;
+                //Usuwam transformacje na nizszych poziomach i na poziomie pakietu
+                list_of_field_transformations.RemoveAll(x => x.destiny_field.id_of_package == destiny_package.id_of_package && x.source_field.id_of_package == random_transformationn.source_package.id_of_package);
+                list_of_object_transformations.RemoveAll(x => x.destiny_object.id_of_package == destiny_package.id_of_package && x.source_object.id_of_package == random_transformationn.source_package.id_of_package);
+                list_of_package_transformations.RemoveAll(x => x.destiny_package.id_of_package == destiny_package.id_of_package && x.source_package.id_of_package == random_transformationn.source_package.id_of_package);
+                //Tworzenie nowej transformacji na poziomie pakietu
+                source_package.list_of_incoming_packages.Add(destiny_package);
+                PackageTransformations new_transformation = new PackageTransformations();
+                new_transformation.destiny_package = source_package;
+                new_transformation.source_package = destiny_package;
+                new_transformation.ID = ID_of_transformation;
+                //Tworzenie transformacji na poziomie obiektów
+                List<ObjectTransformations> temp_object_transformations = list_of_object_transformations.FindAll(x => x.ID == temp_transformations.ID);
+                List<FieldTransformations> temp_field_transformations = list_of_field_transformations.FindAll(x => x.ID == temp_transformations.ID);
+                foreach (ObjectTransformations obj_transformation in temp_object_transformations)
+                {
+                    if (i >= number_of_two_edge_cycles)
+                        break;
+                    Console.WriteLine("Cykl dwuelementowy - obiekt");
+                    ObjectTransformations new_object_transformation = new ObjectTransformations();
+                    new_object_transformation.source_object = obj_transformation.destiny_object;
+                    new_object_transformation.destiny_object = obj_transformation.source_object;
+                    new_object_transformation.ID = ID_of_transformation;
+                    list_of_object_transformations.Add(new_object_transformation);                
+                    
+                    i++;
+
+                }
+                //Tworzenie transformacji na poziomie pol
+                foreach (FieldTransformations fld_transformation in temp_field_transformations)
+                {
+                    if (i >= number_of_two_edge_cycles)
+                        break;
+                    Console.WriteLine("Cykl dwuelementowy - obiekt");
+                    FieldTransformations new_field_transformation = new FieldTransformations();
+                    new_field_transformation.source_field = fld_transformation.destiny_field;
+                    new_field_transformation.destiny_field = fld_transformation.source_field;
+                    new_field_transformation.ID = ID_of_transformation;
+                    list_of_field_transformations.Add(new_field_transformation);
+
+                    i++;
+
+                }
+
+
+
+
+
 
 
 
