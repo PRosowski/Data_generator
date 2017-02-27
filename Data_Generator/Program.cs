@@ -296,7 +296,7 @@ namespace Data_Generator
                 }
 
             }
-
+            Console.WriteLine("Generowanie cykli");
             //Generowanie cykli
             int number_of_edges = list_of_field_transformations.Count + list_of_object_transformations.Count + list_of_package_transformations.Count;
             int number_of_single_edge_cycles = Convert.ToInt32(number_of_edges * single_cycle_edge);
@@ -313,6 +313,7 @@ namespace Data_Generator
                 int ID_of_transformation = temp_transformation.ID;
                 List<ObjectTransformations> temp_object_transformations = list_of_object_transformations.FindAll(x => x.ID == ID_of_transformation);
                 List<FieldTransformations> temp_field_transformations = list_of_field_transformations.FindAll(x => x.ID == ID_of_transformation);
+                Console.WriteLine("Cykl - pakiet");
                 //Transformacje na poziomie obiektu
                 foreach(ObjectTransformations obj_transformation in temp_object_transformations)
                 {
@@ -322,11 +323,13 @@ namespace Data_Generator
                     int random_number_obj_transf = randomNumber.Next(100);
                     if (random_number_obj_transf<50)
                     {
+                        Console.WriteLine("Usuniecie obiektu");
                         //Nie ma cyklu, usuwam z listy transformacji.
                         list_of_object_transformations.Remove(obj_transformation);
                     }
                     else
                     {
+                        Console.WriteLine("Cykl - obiekt");
                         //Jest cykl, modyfikuje wpis w liscie transformacji
                         obj_transformation.destiny_object = obj_transformation.source_object;
                         i++;
@@ -341,11 +344,13 @@ namespace Data_Generator
                     int random_number_fld_transf = randomNumber.Next(100);
                     if(random_number_fld_transf<50)
                     {
+                        Console.WriteLine("Usuniecie pola");
                         //Nie ma cyklu na poziomie pola, usuwam z listy transformacji
                         list_of_field_transformations.Remove(fld_transformation);
                     }
                     else
                     {
+                        Console.WriteLine("Cykl - pole");
                         //Jest cykl na poziomie pola, modyfikuje wpis w liscie transformacji
                         fld_transformation.destiny_field = fld_transformation.source_field;
                         i++;
