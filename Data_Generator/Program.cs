@@ -221,7 +221,7 @@ namespace Data_Generator
                         Console.WriteLine(random_index_of_package);
                         random_package = list_of_packages[random_index_of_package];
                         Console.WriteLine("Id random_package: {0} ", random_package.id_of_package);
-                    } while (package_element.id_of_package != random_package.id_of_package && !(package_element.list_of_incoming_packages.Contains(random_package)));
+                    } while (package_element.id_of_package == random_package.id_of_package || package_element.list_of_incoming_packages.Contains(random_package));
                     Console.WriteLine("Numbrers of element in list {0}", package_element.list_of_incoming_packages.Count);
                     package_element.list_of_incoming_packages.Add(random_package);
                     PackageTransformations new_transformation = new PackageTransformations();
@@ -298,9 +298,74 @@ namespace Data_Generator
             }
 
             //Generowanie cykli
+            int number_of_edges = list_of_field_transformations.Count + list_of_object_transformations.Count + list_of_package_transformations.Count;
+            int number_of_single_edge_cycles = Convert.ToInt32(number_of_edges * single_cycle_edge);
+            int number_of_two_edge_cycles = Convert.ToInt32(number_of_edges * double_cycle_edge);
+            //Generowanie cykli jednoelementowych
+            for(int i=0; i<number_of_single_edge_cycles; i++)
+            {
+                //Wybieram losowy pakiet
+                int random_number = randomNumber.Next(list_of_package_transformations.Count);
+                PackageTransformations temp_transformation = list_of_package_transformations[random_number];
+                //Tworze cykl, czyli wezel docelowy to wezel zrodlowy
+                list_of_package_transformations[random_number].destiny_package = temp_transformation.source_package;
+                //Pobieram informacje o ID transformacji, w celu pozniejszego pobrania transformacji na poziomie obiektu i pol o takim samym ID
+                int ID_of_transformation = temp_transformation.ID;
+                List<ObjectTransformations> temp_object_transformations = list_of_object_transformations.FindAll(x => x.ID == ID_of_transformation);
+                List<FieldTransformations> temp_field_transformations = list_of_field_transformations.FindAll(x => x.ID == ID_of_transformation);
+                //Transformacje na poziomie obiektu
+                foreach(ObjectTransformations obj_transformation in temp_object_transformations)
+                {
+                    if (i == number_of_single_edge_cycles)
+                        break;
+                    // JAK LOSOWAC OBIEKTY?????????????????????????????????????
+                    int random_number_obj_transf = randomNumber.Next(100);
+                    if (random_number_obj_transf<50)
+                    {
+                        //Nie ma cyklu, usuwam z listy transformacji.
+                        list_of_object_transformations.Remove(obj_transformation);
+                    }
+                    else
+                    {
+                        //Jest cykl, modyfikuje wpis w liscie transformacji
+                        obj_transformation.destiny_object = obj_transformation.source_object;
+                        i++;
+                    }
+                }
+                //Transformacje na poziomie pola
+                foreach(FieldTransformations fld_transformation in temp_field_transformations)
+                {
+                    if (i == number_of_single_edge_cycles)
+                        break;
+                    //JAK LOSOWAC POLA?????????????????????????????????????????
+                    int random_number_fld_transf = randomNumber.Next(100);
+                    if(random_number_fld_transf<50)
+                    {
+                        //Nie ma cyklu na poziomie pola, usuwam z listy transformacji
+                        list_of_field_transformations.Remove(fld_transformation);
+                    }
+                    else
+                    {
+                        //Jest cykl na poziomie pola, modyfikuje wpis w liscie transformacji
+                        fld_transformation.destiny_field = fld_transformation.source_field;
+                        i++;
+                    }
+                 
+                }
+            }
+
+
+            //Generowanie cykli dwuelementowych
+
+            // TODO
+            for(int i=0; i<number_of_two_edge_cycles; i++)
+            {
 
 
 
+
+
+            }
 
 
 
