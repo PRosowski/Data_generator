@@ -8,6 +8,43 @@ using System.IO;
 
 namespace Data_Generator
 {
+    public static class DFSCLass
+    {
+
+        //Pare komentarzy searchPackage - dla ktorego szukamy, czy nie ma czasami cyklu,source, pakiet poczatkowy, list_of_dest - lista pakietow docelowych, listof_transformation lista transformacji
+        public static bool DFS(PackageType searchpackage, PackageType source, List<PackageType> list_of_dest, List<PackageTransformations> list_of_transformation, List<PackageType> list_of_visited_nodes)
+        {
+            bool result = false;
+            // przechodze po pakietach docelowych w liscie
+            foreach(PackageType package in list_of_dest)
+            {
+                Console.WriteLine("Jestem w DFS");
+                // jesli pakiet docelowy == pakiet wyszukiwany zwracamy true
+                if (searchpackage == package)
+                {
+                    result = true;
+                    break;
+                } 
+                //Sprawdzamy, czy aby nie bylismy juz w tym wezle. Jesli bylismy, to pomijamy przechodzenie tego wezla ponownie.
+                if(list_of_visited_nodes.FindAll(x => x.id_of_package == package.id_of_package).Count>0)
+                {
+                    continue;
+                }
+                //Jesli nie bylismy, to spoko
+                list_of_visited_nodes.Add(package);
+                // produkujemu liste pakietow docelowych z pakietu zrodlowego
+                List<PackageType> list_of_dest_packages = new List<PackageType>();
+                List<PackageTransformations> list_of_packages = list_of_transformation.FindAll(x => x.source_package == package);
+                foreach(PackageTransformations pck_trnsf in list_of_packages)
+                {
+                    list_of_dest_packages.Add(pck_trnsf.destiny_package);
+                }
+                //wywolujemy dfs
+                result = DFS(searchpackage, package, list_of_dest_packages, list_of_transformation,list_of_visited_nodes);
+            }
+            return result;
+        }
+    }
     public class PackageType
     {
         public int id_of_package { get; set; }
@@ -132,6 +169,33 @@ namespace Data_Generator
             csv2.AppendLine(new_line_header2);
             csv.AppendLine(new_line_header1);
 
+            var csv_package_transformation = new StringBuilder();
+            string filePath_pcg_tarnsformation = pathDesktop + "\\table_of_packages_transformation.csv";
+            if (!File.Exists(filePath_pcg_tarnsformation))
+            {
+                File.Create(filePath_pcg_tarnsformation).Close();
+            }
+            var csv_package_transformation_header = string.Format("id_source_package,id_dest_package,ID_transformation");
+            csv_package_transformation.AppendLine(csv_package_transformation_header);
+
+            var csv_object_transformation = new StringBuilder();
+            string filePath_obj_tarnsformation = pathDesktop + "\\table_of_objects_transformation.csv";
+            if (!File.Exists(filePath_obj_tarnsformation))
+            {
+                File.Create(filePath_obj_tarnsformation).Close();
+            }
+            var csv_object_transformation_header = string.Format("id_source_package,id_source_object,id_dest_package,id_dest_object,ID_transformation");
+            csv_object_transformation.AppendLine(csv_object_transformation_header);
+
+            var csv_field_transformation = new StringBuilder();
+            string filePath_fld_tarnsformation = pathDesktop + "\\table_of_fields_transformation.csv";
+            if (!File.Exists(filePath_fld_tarnsformation))
+            {
+                File.Create(filePath_fld_tarnsformation).Close();
+            }
+            var csv_field_transformation_header = string.Format("id_source_package,id_source_object,id_source_field,id_dest_package,id_dest_object,id_dest_field,ID_transformation");
+            csv_field_transformation.AppendLine(csv_field_transformation_header);
+
             for (int i = 0; i < number_of_packages; i++)
             {
                 //table_of_packagess[i] = i + 1;
@@ -167,7 +231,7 @@ namespace Data_Generator
                         list_of_objects.Add(new_object);
                         var newLineB = string.Format("{0},{1},{2}", i, j, 'B');
                         csv.AppendLine(newLineB);
-                        for (int k = 0; k < av_num_of_fields_of_obj_catA.Sample(); k++)
+                        for (int k = 0; k < av_num_of_fields_of_obj_catB.Sample(); k++)
                         {
                             FieldType new_field = new FieldType();
                             new_field.id_of_package = i;
@@ -198,6 +262,7 @@ namespace Data_Generator
                 sum_av_num_of_incoming_fields += av_num_of_incoming_fields.Sample();
                  */
             }
+
             Console.WriteLine(list_of_packages.Count);
             // Generowanie krawędzi typu data_transformations
             //Pętla po wygenerowanych wczesniej pakietach
@@ -215,13 +280,18 @@ namespace Data_Generator
                           mojego pakietu (package element), by cykle generowac pozniej
                     */
                     PackageType random_package;
+                    List<PackageType> tmp_list_pkg;
+                    List<PackageType> temp_list_vst_pcg;
                     do
                     {
                         int random_index_of_package = randomNumber.Next(list_of_packages.Count);
                         Console.WriteLine(random_index_of_package);
                         random_package = list_of_packages[random_index_of_package];
                         Console.WriteLine("Id random_package: {0} ", random_package.id_of_package);
-                    } while (package_element.id_of_package == random_package.id_of_package || package_element.list_of_incoming_packages.Contains(random_package));
+                        tmp_list_pkg = new List<PackageType>();
+                        tmp_list_pkg.Add(package_element);
+                        temp_list_vst_pcg = new List<PackageType>();
+                    } while (package_element.id_of_package == random_package.id_of_package || package_element.list_of_incoming_packages.Contains(random_package) || DFSCLass.DFS(random_package,random_package,tmp_list_pkg,list_of_package_transformations, temp_list_vst_pcg));
                     Console.WriteLine("Numbrers of element in list {0}", package_element.list_of_incoming_packages.Count);
                     package_element.list_of_incoming_packages.Add(random_package);
                     PackageTransformations new_transformation = new PackageTransformations();
@@ -357,6 +427,9 @@ namespace Data_Generator
                 int number_of_reverse_transformations;
                 int number_of_source_packages_from_destiny_package;
                 // Wybieramy transformacje, ktora nie posiada jeszcze cyklu;
+                List<PackageType> tmp_list_pkg;
+                List<PackageType> temp_list_vst_pcg;
+                bool dfs_flag;
                 do
                 {
                     random_number = randomNumber.Next(list_of_package_transformations.Count);
@@ -365,7 +438,14 @@ namespace Data_Generator
                     number_of_reverse_transformations = list_of_package_transformations.FindAll(x => x.destiny_package.id_of_package == temp_transformations.source_package.id_of_package && x.source_package.id_of_package == temp_transformations.destiny_package.id_of_package).Count;
                     //Sprawdzam, czy mam z czegu usunac krawedz
                     number_of_source_packages_from_destiny_package = list_of_package_transformations.FindAll(x => x.destiny_package == temp_transformations.destiny_package ).Count;
-                } while (number_of_reverse_transformations > 0 || number_of_source_packages_from_destiny_package < 2 || temp_transformations.source_package.id_of_package == temp_transformations.destiny_package.id_of_package);
+                    
+                    tmp_list_pkg = new List<PackageType>();
+                    tmp_list_pkg.Add(temp_transformations.source_package);
+                    dfs_flag = false;
+                    temp_list_vst_pcg = new List<PackageType>();
+                    if (temp_transformations.source_package.id_of_package != temp_transformations.destiny_package.id_of_package)
+                        DFSCLass.DFS(temp_transformations.destiny_package, temp_transformations.destiny_package, tmp_list_pkg, list_of_package_transformations, temp_list_vst_pcg);
+                } while (number_of_reverse_transformations > 0 || number_of_source_packages_from_destiny_package < 2 || temp_transformations.source_package.id_of_package == temp_transformations.destiny_package.id_of_package || dfs_flag);
                 //Jest wybrana transformacja. Bez cykli jednoelementowych oraz nie posiadajaca cyklu dwuelementowego
 
                 PackageType source_package = temp_transformations.source_package;
@@ -418,41 +498,34 @@ namespace Data_Generator
                     i++;
 
                 }
-
-
-
-
-
-
-
-
-
-
+                Console.WriteLine("Koniec generowania cyklu dla danego pakietu");
             }
 
 
+            foreach(PackageTransformations packg_transformation in list_of_package_transformations)
+            {
+                var newLineA = string.Format("{0},{1},{2}", packg_transformation.source_package.id_of_package, packg_transformation.destiny_package.id_of_package, packg_transformation.ID);
+                csv_package_transformation.AppendLine(newLineA);
+            }
 
+            foreach (ObjectTransformations objc_transformation in list_of_object_transformations)
+            {
+                var newLineA = string.Format("{0},{1},{2},{3},{4}", objc_transformation.source_object.id_of_package, objc_transformation.source_object.id_of_object, objc_transformation.destiny_object.id_of_package, objc_transformation.destiny_object.id_of_object, objc_transformation.ID);
+                csv_object_transformation.AppendLine(newLineA);
+            }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
+            foreach(FieldTransformations flds_transformation in list_of_field_transformations)
+            {
+                var newlineA = string.Format("{0},{1},{2},{3},{4},{5},{6}", flds_transformation.source_field.id_of_package, flds_transformation.source_field.id_of_object, flds_transformation.source_field.id_of_field, flds_transformation.destiny_field.id_of_package,flds_transformation.destiny_field.id_of_object,flds_transformation.destiny_field.id_of_field,flds_transformation.ID);
+                csv_field_transformation.AppendLine(newlineA);
+            }
 
 
             File.WriteAllText(filePath_pcg_to_obj, csv.ToString());
             File.WriteAllText(filePath_pcg_to_obj_fields, csv2.ToString());
+            File.WriteAllText(filePath_pcg_tarnsformation, csv_package_transformation.ToString());
+            File.WriteAllText(filePath_obj_tarnsformation, csv_object_transformation.ToString());
+            File.WriteAllText(filePath_fld_tarnsformation, csv_field_transformation.ToString());
             /*
             Console.WriteLine("Srednia liczba obiektów w pakiecie:" + sum_av_num_of_obj_per_package / number_of_packages);
             Console.WriteLine("Srednia liczba obiektów kategoria A:" + sum_av_num_of_fields_of_obj_catA / number_of_packages);
