@@ -18,7 +18,7 @@ namespace Data_Generator
             // przechodze po pakietach docelowych w liscie
             foreach(PackageType package in list_of_dest)
             {
-                Console.WriteLine("Jestem w DFS");
+                Console.WriteLine("Jestem w DFS {0}, a to poszukiwany pakiet {1}", package.id_of_package, searchpackage.id_of_package);
                 // jesli pakiet docelowy == pakiet wyszukiwany zwracamy true
                 if (searchpackage == package)
                 {
@@ -30,11 +30,12 @@ namespace Data_Generator
                 {
                     continue;
                 }
+
                 //Jesli nie bylismy, to spoko
                 list_of_visited_nodes.Add(package);
                 // produkujemu liste pakietow docelowych z pakietu zrodlowego
                 List<PackageType> list_of_dest_packages = new List<PackageType>();
-                List<PackageTransformations> list_of_packages = list_of_transformation.FindAll(x => x.source_package == package);
+                List<PackageTransformations> list_of_packages = list_of_transformation.FindAll(x => x.source_package.id_of_package == package.id_of_package);
                 foreach(PackageTransformations pck_trnsf in list_of_packages)
                 {
                     list_of_dest_packages.Add(pck_trnsf.destiny_package);
@@ -381,7 +382,8 @@ namespace Data_Generator
                 {
                     random_number = randomNumber.Next(list_of_package_transformations.Count);
                     temp_transformation = list_of_package_transformations[random_number];
-                } while (temp_transformation.destiny_package.id_of_package == temp_transformation.source_package.id_of_package);
+                    //  BŁAD - ZNALAZLEM DWA CYKLE JEDNOELEMENTOWE DO JEDNEGO PAKIETU - CZY JEST TO OK?? (MODYFIKACJA PO &&)
+                } while (temp_transformation.destiny_package.id_of_package == temp_transformation.source_package.id_of_package && list_of_package_transformations.FindAll(x => x.source_package.id_of_package == temp_transformation.source_package.id_of_package && x.destiny_package.id_of_package == temp_transformation.source_package.id_of_package)!=null);
                 
                 //Tworze cykl, czyli wezel docelowy to wezel zrodlowy
                 list_of_package_transformations[random_number].destiny_package = temp_transformation.source_package;
@@ -442,9 +444,16 @@ namespace Data_Generator
                     tmp_list_pkg = new List<PackageType>();
                     tmp_list_pkg.Add(temp_transformations.source_package);
                     dfs_flag = false;
+                    
                     temp_list_vst_pcg = new List<PackageType>();
                     if (temp_transformations.source_package.id_of_package != temp_transformations.destiny_package.id_of_package)
-                        DFSCLass.DFS(temp_transformations.destiny_package, temp_transformations.destiny_package, tmp_list_pkg, list_of_package_transformations, temp_list_vst_pcg);
+                       dfs_flag = DFSCLass.DFS(temp_transformations.destiny_package, temp_transformations.destiny_package, tmp_list_pkg, list_of_package_transformations, temp_list_vst_pcg);
+                    Console.WriteLine("PETLA W GENEROWANIU CYKLI PODWOJNYCH");
+                    Console.WriteLine("dfs_flag {0}", dfs_flag);
+                    Console.WriteLine("number_of_reverse_transformations {0}", number_of_reverse_transformations);
+                    Console.WriteLine("number_of_source packages from dsetine {0}", number_of_source_packages_from_destiny_package);
+                    Console.WriteLine(temp_transformations.source_package.id_of_package);
+                    Console.WriteLine(temp_transformations.destiny_package.id_of_package);
                 } while (number_of_reverse_transformations > 0 || number_of_source_packages_from_destiny_package < 2 || temp_transformations.source_package.id_of_package == temp_transformations.destiny_package.id_of_package || dfs_flag);
                 //Jest wybrana transformacja. Bez cykli jednoelementowych oraz nie posiadajaca cyklu dwuelementowego
 
